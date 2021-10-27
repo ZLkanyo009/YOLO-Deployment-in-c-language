@@ -45,5 +45,8 @@
 extern int *vga_bram;
 extern const float anchor_size[][2];
 extern const char stride;
+extern const float conf_thresh, nms_thresh;
+extern const char anchor_num;
+extern const int pic_width, pic_height, out_width, out_height;
 
 #endif

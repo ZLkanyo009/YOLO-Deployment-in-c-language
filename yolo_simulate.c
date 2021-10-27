@@ -10,9 +10,7 @@
 #include "post_utils.h"
 #include "box.h"
 
-void yolo_forward(const int inp_w, int inp_h, const int out_w, const int out_h, 
-                  const float conf_thresh, const float nms_thresh, \
-                  const char anchor_num, \
+void yolo_forward(const int inp_w, int inp_h, const int out_w, const int out_h,
                   short int *camera_bram_pointer, int *vga_bram_pointer){
     const char TRow = 18;
     const char TCol = 22;
@@ -115,18 +113,18 @@ void yolo_forward(const int inp_w, int inp_h, const int out_w, const int out_h,
     
     struct BOX bbox_lst[anchor_total];  //后续可以考虑使用链表
 
-    int bbox_lst_length = get_boxes(inp_h, inp_w, out_h, out_w, anchor_num, \
-                                    conf_thresh, bbox_lst, \
+    int bbox_lst_length = get_boxes(inp_h, inp_w, out_h, out_w, bbox_lst, \
                                     net_output_pointer, (net_output_pointer + 5), \
                                     (net_output_pointer + 15));    
     free(net_output);
+    
     #ifdef DRAW_DEBUG
         printf("bbox_lst_length: %d\n", bbox_lst_length);
     #endif
 
     conf_sort(bbox_lst, bbox_lst_length);
     
-    int NMS_length = NMS(bbox_lst, bbox_lst_length, nms_thresh);
+    int NMS_length = NMS(bbox_lst, bbox_lst_length);
 
     draw_rectangle(bbox_lst, bbox_lst_length, camera_bram_pointer, inp_w);
     //memcpy(vga_bram_pointer, camera_bram_pointer, 76800*2);    
@@ -135,14 +133,15 @@ void yolo_forward(const int inp_w, int inp_h, const int out_w, const int out_h,
 int main()
 {
     int *dest_bram = vga_bram;
-    short int *camera_bram = (short int *) malloc(153600); // 320*240*16/8
-    char *ori_pic = (char *) malloc(307200);
+
+    const int inp_w = pic_width;
+    const int inp_h = pic_height;
+    const int out_w = out_width;
+    const int out_h = out_height;
+
+    short int *camera_bram = (short int *) malloc(inp_w * inp_h * 16 / 8); // 320*240*16/8
 
     IplImage *src = cvLoadImage("pic.png", -1); 
-    const int inp_h = src->height;
-	const int inp_w = src->width;
-    const int out_h = 15;
-    const int out_w = 20;
 
     #ifdef DEBUG
         printf("width = %d \n", src->width);
@@ -151,12 +150,10 @@ int main()
     image_load(inp_h, inp_w, src, camera_bram);
     //image_show(inp_h, inp_w, src, camera_bram);
 
-    const float conf_thresh = 0.04, nms_thresh = 0.5;
-    const char anchor_num = 5;
-
     yolo_forward(inp_w, inp_h, out_w, out_h, \
-                 conf_thresh, nms_thresh, anchor_num, \
                  (short int *)camera_bram, dest_bram);
+                 
     image_show(inp_h, inp_w, src, camera_bram);
+
     return 0;
 }

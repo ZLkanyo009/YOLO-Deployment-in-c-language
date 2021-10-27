@@ -39,16 +39,16 @@ float box_iou(struct BOX a,\
            (float) box_union(a.x_max, a.x_min, a.y_max, a.y_min, b.x_max, b.x_min, b.y_max, b.y_min);    
 }
 
-int NMS(struct BOX src[], int anchor_num, float nms_thresh){
+int NMS(struct BOX src[], int bbox_lst_length){
     int max_index = 0, current_index = 0;
     int j;
     float iou;
     struct BOX tmp;
-    while (current_index < anchor_num) {    //探究一轮循环的方法，与所以输出框比较，递归？？
+    while (current_index < bbox_lst_length) {    //探究一轮循环的方法，与所以输出框比较，递归？？
         //printf("current_index: %d\n", current_index);
         if (!(src[current_index].supression)) {
             tmp = src[current_index];
-            for (j = current_index + 1; j < anchor_num; j++) {
+            for (j = current_index + 1; j < bbox_lst_length; j++) {
                 iou = box_iou(tmp, src[j]);
                 if (iou >= nms_thresh)
                     src[j].supression = 1;
